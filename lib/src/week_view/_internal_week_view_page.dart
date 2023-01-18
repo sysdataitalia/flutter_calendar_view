@@ -108,6 +108,8 @@ class InternalWeekViewPage<T extends Object?> extends StatelessWidget {
   /// Display full day events.
   final FullDayEventBuilder<T>? fullDayEventBuilder;
 
+  final AdvancedCustomizationSettings? advancedCustomizationSettings;
+
   /// A single page for week view.
   const InternalWeekViewPage({
     Key? key,
@@ -139,11 +141,13 @@ class InternalWeekViewPage<T extends Object?> extends StatelessWidget {
     required this.minuteSlotSize,
     required this.scrollConfiguration,
     this.fullDayEventBuilder,
+    this.advancedCustomizationSettings
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final filteredDates = _filteredDate();
+
     return Container(
       height: height + weekTitleHeight,
       width: width,
@@ -165,9 +169,14 @@ class InternalWeekViewPage<T extends Object?> extends StatelessWidget {
                   (index) => SizedBox(
                     height: weekTitleHeight,
                     width: weekTitleWidth,
-                    child: weekDayBuilder(
-                      filteredDates[index],
-                    ),
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        left: advancedCustomizationSettings?.columsDistance ?? 0
+                      ),
+                      child: weekDayBuilder(
+                        filteredDates[index],
+                      ),
+                    )
                   ),
                 )
               ],
@@ -204,24 +213,17 @@ class InternalWeekViewPage<T extends Object?> extends StatelessWidget {
                 width: width,
                 child: Stack(
                   children: [
-                    CustomPaint(
-                      size: Size(width, height),
-                      painter: HourLinePainter(
-                        lineColor: hourIndicatorSettings.color,
-                        lineHeight: hourIndicatorSettings.height,
-                        offset: timeLineWidth + hourIndicatorSettings.offset,
-                        minuteHeight: heightPerMinute,
-                        verticalLineOffset: verticalLineOffset,
-                        showVerticalLine: showVerticalLine,
-                      ),
-                    ),
-                    if (showLiveLine && liveTimeIndicatorSettings.height > 0)
-                      LiveTimeIndicator(
-                        liveTimeIndicatorSettings: liveTimeIndicatorSettings,
-                        width: width,
-                        height: height,
-                        heightPerMinute: heightPerMinute,
-                        timeLineWidth: timeLineWidth,
+                    if(advancedCustomizationSettings?.columnsBackgroundColor == null)
+                      CustomPaint(
+                        size: Size(width, height),
+                        painter: HourLinePainter(
+                          lineColor: hourIndicatorSettings.color,
+                          lineHeight: hourIndicatorSettings.height,
+                          offset: timeLineWidth + hourIndicatorSettings.offset,
+                          minuteHeight: heightPerMinute,
+                          verticalLineOffset: verticalLineOffset,
+                          showVerticalLine: showVerticalLine,
+                        ),
                       ),
                     Align(
                       alignment: Alignment.centerRight,
@@ -232,41 +234,59 @@ class InternalWeekViewPage<T extends Object?> extends StatelessWidget {
                           children: [
                             ...List.generate(
                               filteredDates.length,
-                              (index) => Container(
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    right: BorderSide(
-                                      color: hourIndicatorSettings.color,
-                                      width: hourIndicatorSettings.height,
-                                    ),
+                              (index) => Padding(
+                                padding: EdgeInsets.only(left: advancedCustomizationSettings?.columsDistance ?? 0),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: advancedCustomizationSettings?.columnsBackgroundColor,
+                                    borderRadius: advancedCustomizationSettings?.columnsBorderRadius,
+                                    border: (advancedCustomizationSettings?.columnsBorderRadius == null) 
+                                      ? Border(
+                                        right: BorderSide(
+                                          color: hourIndicatorSettings.color,
+                                          width: hourIndicatorSettings.height,
+                                        ),
+                                      )
+                                      : null
                                   ),
-                                ),
-                                height: height,
-                                width: weekTitleWidth,
-                                child: Stack(
-                                  children: [
-                                    PressDetector(
-                                      width: weekTitleWidth,
-                                      height: height,
-                                      heightPerMinute: heightPerMinute,
-                                      date: dates[index],
-                                      onDateTap: onDateTap,
-                                      onDateLongPress: onDateLongPress,
-                                      minuteSlotSize: minuteSlotSize,
-                                    ),
-                                    EventGenerator<T>(
-                                      height: height,
-                                      date: filteredDates[index],
-                                      onTileTap: onTileTap,
-                                      width: weekTitleWidth,
-                                      eventArranger: eventArranger,
-                                      eventTileBuilder: eventTileBuilder,
-                                      scrollNotifier: scrollConfiguration,
-                                      events: controller
-                                          .getEventsOnDay(filteredDates[index]),
-                                      heightPerMinute: heightPerMinute,
-                                    ),
-                                  ],
+                                  height: height,
+                                  width: weekTitleWidth - (advancedCustomizationSettings?.columsDistance ?? 0),
+                                  child: Stack(
+                                    children: [
+                                      if(advancedCustomizationSettings?.columnsBackgroundColor != null)
+                                        CustomPaint(
+                                          size: Size(weekTitleWidth, height),
+                                          painter: HourLinePainter(
+                                            lineColor: hourIndicatorSettings.color,
+                                            lineHeight: hourIndicatorSettings.height,
+                                            offset: 0,
+                                            minuteHeight: heightPerMinute,
+                                            verticalLineOffset: 0,
+                                            showVerticalLine: false,
+                                          ),
+                                        ),
+                                      PressDetector(
+                                        width: weekTitleWidth - (advancedCustomizationSettings?.columsDistance ?? 0),
+                                        height: height,
+                                        heightPerMinute: heightPerMinute,
+                                        date: dates[index],
+                                        onDateTap: onDateTap,
+                                        onDateLongPress: onDateLongPress,
+                                        minuteSlotSize: minuteSlotSize,
+                                      ),
+                                      EventGenerator<T>(
+                                        height: height,
+                                        date: filteredDates[index],
+                                        onTileTap: onTileTap,
+                                        width: weekTitleWidth - (advancedCustomizationSettings?.columsDistance ?? 0),
+                                        eventArranger: eventArranger,
+                                        eventTileBuilder: eventTileBuilder,
+                                        scrollNotifier: scrollConfiguration,
+                                        events: controller.getEventsOnDay(filteredDates[index]),
+                                        heightPerMinute: heightPerMinute,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             )
@@ -274,6 +294,14 @@ class InternalWeekViewPage<T extends Object?> extends StatelessWidget {
                         ),
                       ),
                     ),
+                    if (showLiveLine && liveTimeIndicatorSettings.height > 0)
+                      LiveTimeIndicator(
+                        liveTimeIndicatorSettings: liveTimeIndicatorSettings,
+                        width: width,
+                        height: height,
+                        heightPerMinute: heightPerMinute,
+                        timeLineWidth: timeLineWidth,
+                      ),
                     TimeLine(
                       timeLineWidth: timeLineWidth,
                       hourHeight: hourHeight,

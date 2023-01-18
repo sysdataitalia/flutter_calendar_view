@@ -22,3 +22,15 @@ class HourIndicatorSettings {
         height: 0.0,
       );
 }
+
+class AdvancedCustomizationSettings {
+  final double? columsDistance;
+  final BorderRadius? columnsBorderRadius;
+  final Color? columnsBackgroundColor;
+
+  AdvancedCustomizationSettings({
+    this.columsDistance,
+    this.columnsBorderRadius,
+    this.columnsBackgroundColor
+  });
+}
