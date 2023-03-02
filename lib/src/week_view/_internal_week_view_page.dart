@@ -295,12 +295,14 @@ class InternalWeekViewPage<T extends Object?> extends StatelessWidget {
                       ),
                     ),
                     if (showLiveLine && liveTimeIndicatorSettings.height > 0)
-                      LiveTimeIndicator(
-                        liveTimeIndicatorSettings: liveTimeIndicatorSettings,
-                        width: width,
-                        height: height,
-                        heightPerMinute: heightPerMinute,
-                        timeLineWidth: timeLineWidth,
+                      IgnorePointer(
+                        child: LiveTimeIndicator(
+                          liveTimeIndicatorSettings: liveTimeIndicatorSettings,
+                          width: width,
+                          height: height,
+                          heightPerMinute: heightPerMinute,
+                          timeLineWidth: timeLineWidth,
+                        ),
                       ),
                     TimeLine(
                       timeLineWidth: timeLineWidth,
